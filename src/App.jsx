@@ -1,16 +1,10 @@
-import { useState } from 'react'
 
-import './App.css'
+import { RouterProvider } from 'react-router'
+import { router } from './App.route'
 
-function App() {
-  const [count, setCount] = useState(0)
-
+const App = () => {
   return (
-    <div className="App">
-      <h1>Neuroscan AI</h1>
-      <p>Count: {count}</p>
-      <button onClick={() => setCount(count + 1)}>Increment</button>
-    </div>
+    <RouterProvider router={router} />
   )
 }
 
