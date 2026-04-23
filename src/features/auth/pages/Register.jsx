@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-// ─── Design tokens ────────────────────────────────────────────────────────────
+// ─── Design tokens (shared with NeuroScanLogin) ───────────────────────────────
 const T = {
   surface:                 "#0b1326",
   surfaceContainer:        "#171f33",
@@ -9,14 +9,17 @@ const T = {
   surfaceContainerLow:     "#131b2e",
   surfaceContainerLowest:  "#060e20",
   surfaceBright:           "#31394d",
+  primaryContainer:        "#001a27",
   onSurface:               "#dae2fd",
   onSurfaceVariant:        "#c6c6cd",
   outlineVariant:          "#45464d",
   primary:                 "#7bd0ff",
   onPrimary:               "#00354a",
+  onPrimaryFixed:          "#001e2c",
   onPrimaryContainer:      "#008abb",
-  error:                   "#ffb4ab",
   tertiary:                "#ffb95f",
+  tertiaryContainer:       "#251400",
+  error:                   "#ffb4ab",
 };
 
 // ─── Global CSS ───────────────────────────────────────────────────────────────
@@ -33,15 +36,15 @@ const css = `
     min-height: 100dvh;
   }
 
-  /* Glass card */
-  .ns-card {
+  /* Glass card — identical to login */
+  .rg-card {
     background: rgba(45, 52, 73, 0.60);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
   }
 
-  /* CTA button */
-  .ns-btn {
+  /* CTA — identical gradient to login */
+  .rg-btn {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -49,22 +52,22 @@ const css = `
     width: 100%;
     padding: 1rem;
     border: none;
-    border-radius: 0.5rem;
+    border-radius: 0.375rem;
     cursor: pointer;
     font-family: 'Manrope', sans-serif;
     font-weight: 700;
     font-size: 0.875rem;
     letter-spacing: 0.08em;
-    color: ${T.onPrimary};
+    color: ${T.onPrimaryFixed};
     background: linear-gradient(135deg, ${T.primary} 0%, ${T.onPrimaryContainer} 100%);
     box-shadow: 0 4px 32px rgba(123,208,255,0.18);
-    transition: opacity 0.15s, transform 0.1s;
+    transition: filter 0.15s, transform 0.1s;
   }
-  .ns-btn:hover  { opacity: 0.88; }
-  .ns-btn:active { transform: scale(0.98); }
+  .rg-btn:hover  { filter: brightness(1.10); }
+  .rg-btn:active { transform: scale(0.98); }
 
-  /* Input */
-  .ns-input {
+  /* Input — identical to login */
+  .rg-input {
     display: block;
     width: 100%;
     padding: 0.875rem 0.875rem 0.875rem 2.75rem;
@@ -77,14 +80,14 @@ const css = `
     outline: none;
     transition: background 0.2s, box-shadow 0.2s;
   }
-  .ns-input::placeholder { color: rgba(198,198,205,0.5); }
-  .ns-input:focus {
+  .rg-input::placeholder { color: rgba(198,198,205,0.40); }
+  .rg-input:focus {
     background: ${T.surfaceBright};
     box-shadow: 0 0 0 1px rgba(123,208,255,0.40);
   }
 
-  /* Label */
-  .ns-label {
+  /* Label — identical to login */
+  .rg-label {
     display: block;
     font-size: 0.6875rem;
     font-weight: 700;
@@ -94,8 +97,8 @@ const css = `
     margin-bottom: 0.5rem;
   }
 
-  /* Nav button */
-  .ns-nav-btn {
+  /* Nav button (bottom bar) — identical to login */
+  .rg-nav-btn {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -110,45 +113,42 @@ const css = `
     font-weight: 500;
     transition: transform 0.15s, color 0.15s;
   }
-  .ns-nav-btn:active { transform: scale(0.90); }
+  .rg-nav-btn:active { transform: scale(0.90); }
 
   /* Checkbox */
-  .ns-check {
+  .rg-check {
     width: 1.125rem;
     height: 1.125rem;
     border-radius: 0.125rem;
     background: ${T.surfaceContainerHighest};
-    border: none;
+    border: 1px solid ${T.outlineVariant};
     accent-color: ${T.primary};
     cursor: pointer;
     flex-shrink: 0;
+    margin-top: 0.125rem;
   }
 
-  /* ── Mobile defaults ── */
-  .ns-left-panel    { display: none; }
-  .ns-mobile-shield { display: flex; }
-  .ns-hipaa         { display: none; }
-  .ns-bottom-nav    { display: flex; }
+  /* ── Mobile defaults (identical pattern to login) ── */
+  .rg-left-panel    { display: none; }
+  .rg-mobile-shield { display: flex;  }
+  .rg-hipaa         { display: none;  }
+  .rg-bottom-nav    { display: flex;  }
 
-  /* ── Desktop (md+) ── */
+  /* ── Desktop md+ ── */
   @media (min-width: 768px) {
-    .ns-left-panel    { display: flex; }
-    .ns-mobile-shield { display: none !important; }
-    .ns-bottom-nav    { display: none !important; }
-    .ns-main {
+    .rg-left-panel    { display: flex; }
+    .rg-mobile-shield { display: none !important; }
+    .rg-bottom-nav    { display: none !important; }
+    .rg-main {
       flex-direction: row !important;
       padding: 6rem 1.5rem 4rem !important;
       gap: 3rem !important;
+      align-items: center !important;
     }
-    .ns-card-wrap {
-      width: 440px !important;
+    .rg-card-wrap {
+      width: 480px !important;   /* slightly wider than login — more fields */
       padding: 0 !important;
     }
-  }
-
-  /* ── XL badge ── */
-  @media (min-width: 1280px) {
-    .ns-hipaa { display: flex; }
   }
 `;
 
@@ -171,29 +171,66 @@ function Icon({ name, fill = 0, size = "1.25rem", color, style = {} }) {
   );
 }
 
-// ─── Avatar data ──────────────────────────────────────────────────────────────
+// ─── Reusable icon-prefixed input ─────────────────────────────────────────────
+function IconInput({ id, type = "text", placeholder, icon, fill = 0, value, onChange, required }) {
+  return (
+    <div style={{ position: "relative" }}>
+      <Icon
+        name={icon}
+        fill={fill}
+        color={T.onSurfaceVariant}
+        size="1.1rem"
+        style={{
+          position: "absolute",
+          left: "0.875rem",
+          top: "50%",
+          transform: "translateY(-50%)",
+          pointerEvents: "none",
+          opacity: 0.7,
+        }}
+      />
+      <input
+        id={id}
+        type={type}
+        className="rg-input"
+        placeholder={placeholder}
+        value={value}
+        onChange={onChange}
+        required={required}
+      />
+    </div>
+  );
+}
+
+// ─── Avatar data (same as login) ──────────────────────────────────────────────
 const AVATARS = [
   { src: "https://lh3.googleusercontent.com/aida-public/AB6AXuB6rA1En8AOXo2DLolIcyguiXwWQyxc8sMPXLNhg5Kfik1iV4vHxSj7Mdvs1RYeoql3XsKmPna1GUscainjxAZqnvQjt206EF_Rj8LtUknict9Lo1dE9qJc0DpkZpVotWlWbcuB48eb2Ft97QhXGaEkpKv1ROdfi3XSiAvBdN8kjZB0qhdQj8435cvc08NJQZ7m7usVsvOPRV9rVmMyjZKPDtj9gk1Q1LwL3Q_CIJ-f_obrp2jMYsr6bOtE4KT7yusaw6yloPZTJ6Fs", alt: "Female doctor" },
   { src: "https://lh3.googleusercontent.com/aida-public/AB6AXuCuOA7eYllHZxajEav3k8doT1dhyga9yW8fadrrghwSuA-OCZhznSb6p3Zb86X9IYkiU3P06YYDCGlElvHKAl25XL4DKD38tgjjcUis92vPDU5q5_1bGDcv7K_x8nYOP-6yepPR9pVKUBB0dz3nD2y1TKuj4KrXG0-QwKgtbn8YyH04V1Fkxsl12q9JIS1v0rpqbYZg20c8-JlYgOhXoPjhGHB6cmg9PfJKFqzObhwgxcYu5CpIEBcDdQneof-6wWKfes7YyHWywTeB", alt: "Male physician" },
   { src: "https://lh3.googleusercontent.com/aida-public/AB6AXuC0isZx4-Q7hCVakk2Usy1QRZtApsPfO7w-vFdHsE4-h8Wbjle0wnQP3yZ8NhztkoEwl8OjFeWNiR7NW0XNErDmbL1XOcCCCfahVXYfq5Sx2ffh1nEz7oTKACcFkLK5dacerZbL5zGJTI4UIYQYpQlAGc1FXuGAdiaPo71kM8bRa3MrHquMK4jbo9xY-5YwhG1QgPqd3pfhI-1bA4QouLoJ-xNw19QSe559THNh0lV1klLvSSyN3rriEy-tJNAJ7kH7TIHfw-Vy6Pbz", alt: "Specialist doctor" },
 ];
 
-// ─── Main Component ───────────────────────────────────────────────────────────
-export default function NeuroScanLogin() {
-  const [email,    setEmail]    = useState("");
-  const [password, setPassword] = useState("");
-  const [remember, setRemember] = useState(false);
+// ─── Main component ───────────────────────────────────────────────────────────
+export default function NeuroScanRegister() {
+  const [form, setForm] = useState({
+    name: "", email: "", password: "", compliance: false,
+  });
+
+  const set = (key) => (e) =>
+    setForm((prev) => ({
+      ...prev,
+      [key]: e.target.type === "checkbox" ? e.target.checked : e.target.value,
+    }));
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log("Authenticate:", { email, remember });
+    console.log("Register:", form);
   };
 
   return (
     <>
       <style>{css}</style>
 
-      {/* ══════════════════════ HEADER ══════════════════════ */}
+      {/* ══════════════════════ HEADER — identical to login ══════════════════════ */}
       <header style={{
         position: "fixed", top: 0, left: 0, right: 0, zIndex: 50,
         height: "4rem",
@@ -222,54 +259,63 @@ export default function NeuroScanLogin() {
 
       {/* ══════════════════════ MAIN ══════════════════════ */}
       <main
-        className="ns-main"
+        className="rg-main"
         style={{
           position: "relative",
           display: "flex",
-          flexDirection: "column",        /* mobile: stacked */
+          flexDirection: "column",         /* mobile: stacked */
           alignItems: "center",
           justifyContent: "center",
           maxWidth: "72rem",
           margin: "0 auto",
-          padding: "4rem 0 5.5rem",       /* mobile: header + nav clearance */
+          padding: "4rem 0 5.5rem",        /* mobile: header + nav clearance */
           minHeight: "100dvh",
         }}
       >
-        {/* ── LEFT PANEL: desktop only ─────────────────────────────── */}
+
+        {/* ══ LEFT PANEL — desktop only, mirrors login structure exactly ════════ */}
         <div
-          className="ns-left-panel"
+          className="rg-left-panel"
           style={{
             flex: "1 1 300px", maxWidth: "460px",
             flexDirection: "column", gap: "1.5rem", padding: "0 1.5rem",
           }}
         >
+          {/* Eye-catcher label */}
           <span style={{
             fontFamily: "Inter, sans-serif", fontSize: "0.625rem",
             fontWeight: 700, letterSpacing: "0.12em",
             textTransform: "uppercase", color: T.primary,
           }}>
-            Diagnostic Authorization System
+            Clinical Account Creation
           </span>
+
+          {/* Headline */}
           <h1 style={{
             fontFamily: "Manrope, sans-serif",
             fontSize: "clamp(2rem, 4vw, 2.8rem)",
             fontWeight: 800, color: T.onSurface,
             lineHeight: 1.15, letterSpacing: "-0.025em",
           }}>
-            Precision in every<br />
-            <span style={{ color: T.primary }}>neural scan.</span>
+            Join the network of<br />
+            <span style={{ color: T.primary }}>diagnostic experts.</span>
           </h1>
+
+          {/* Info callout — same left-border treatment as login */}
           <div style={{
-            background: T.surfaceContainer, borderRadius: "0.25rem",
+            background: T.surfaceContainer,
             borderLeft: `4px solid rgba(123,208,255,0.40)`,
+            borderRadius: "0.25rem",
             padding: "1.25rem 1.5rem",
           }}>
             <p style={{ color: T.onSurfaceVariant, fontSize: "0.875rem", lineHeight: 1.7 }}>
-              Accessing the NeuroScan clinical environment requires multi-factor
-              authentication. Ensure you are utilizing a secure, hospital-validated
-              terminal for all diagnostic reviews.
+              Create an encrypted diagnostic account for secure brain MRI analysis
+              and patient triage. Access is granted exclusively to licensed healthcare
+              professionals.
             </p>
           </div>
+
+          {/* Avatar stack — same as login */}
           <div style={{ display: "flex", alignItems: "center", gap: "1rem", paddingTop: "0.5rem" }}>
             <div style={{ display: "flex" }}>
               {AVATARS.map((av, i) => (
@@ -290,9 +336,9 @@ export default function NeuroScanLogin() {
           </div>
         </div>
 
-        {/* ── SHIELD ICON: mobile only, overlaps card top ──────────── */}
+        {/* ══ SHIELD ICON — mobile only, overlaps card top (mirrors login) ══════ */}
         <div
-          className="ns-mobile-shield"
+          className="rg-mobile-shield"
           style={{
             justifyContent: "center",
             paddingTop: "2.5rem",
@@ -303,15 +349,15 @@ export default function NeuroScanLogin() {
           <Icon name="shield_with_heart" fill={1} color={T.primary} size="3.5rem" />
         </div>
 
-        {/* ── LOGIN CARD ────────────────────────────────────────────── */}
+        {/* ══ REGISTER CARD ═══════════════════════════════════════════════════ */}
         <div
-          className="ns-card-wrap"
+          className="rg-card-wrap"
           style={{
             width: "100%",
-            padding: "0 1rem",            /* mobile: edge gutters */
+            padding: "0 1rem",   /* mobile: edge gutters */
           }}
         >
-          <div className="ns-card" style={{
+          <div className="rg-card" style={{
             width: "100%",
             borderRadius: "1rem",
             border: "1px solid rgba(69,70,77,0.12)",
@@ -322,79 +368,87 @@ export default function NeuroScanLogin() {
             {/* Card header */}
             <div style={{ marginBottom: "1.75rem" }}>
               <h2 style={{
-                fontFamily: "Manrope, sans-serif", fontSize: "1.75rem",
+                fontFamily: "Manrope, sans-serif", fontSize: "1.625rem",
                 fontWeight: 700, color: T.onSurface,
                 letterSpacing: "-0.02em", lineHeight: 1.2,
               }}>
-                Welcome Back
+                Clinical Registration
               </h2>
               <p style={{ color: T.onSurfaceVariant, fontSize: "0.9375rem", marginTop: "0.3rem" }}>
-                Initialize clinical session
+                Create your encrypted diagnostic account
               </p>
             </div>
 
-            {/* Form */}
+            {/* ── Form ── */}
             <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
 
-              {/* Email */}
+              {/* Full Name */}
               <div>
-                <label className="ns-label" htmlFor="ns-email">Email Address</label>
-                <div style={{ position: "relative" }}>
-                  <Icon name="medical_services" color={T.onSurfaceVariant} size="1.2rem" style={{
-                    position: "absolute", left: "0.875rem", top: "50%",
-                    transform: "translateY(-50%)", pointerEvents: "none",
-                  }} />
-                  <input
-                    id="ns-email" type="email" className="ns-input"
-                    placeholder="name@domain.com" required
-                    value={email} onChange={(e) => setEmail(e.target.value)}
-                  />
-                </div>
+                <label className="rg-label" htmlFor="rg-name">Full Name</label>
+                <IconInput
+                  id="rg-name" icon="person"
+                  placeholder="Dr. Julian Thorne"
+                  value={form.name} onChange={set("name")} required
+                />
               </div>
 
-              {/* Password */}
+              {/* Clinical Email */}
               <div>
-                <div >
-                  <label className="ns-label" htmlFor="ns-password" style={{ margin: 0 }}>Access Key</label>
-                  <a href="#" style={{
-                    fontSize: "0.6875rem", fontWeight: 700, color: T.primary,
-                    textTransform: "uppercase", letterSpacing: "0.04em", textDecoration: "none",
-                  }}
+                <label className="rg-label" htmlFor="rg-email">Clinical Email</label>
+                <IconInput
+                  id="rg-email" icon="mail" type="email"
+                  placeholder="thorne.j@medical-institute.org"
+                  value={form.email} onChange={set("email")} required
+                />
+              </div>
+
+              {/* Secure Password */}
+              <div>
+                <div>
+                  <label className="rg-label" htmlFor="rg-password" style={{ margin: 0 }}>
+                    Secure Password
+                  </label>
+                </div>
+                <IconInput
+                  id="rg-password" icon="lock" type="password"
+                  placeholder="•••••••••"
+                  value={form.password} onChange={set("password")} required
+                />
+              </div>
+
+              {/* Compliance checkbox */}
+              <div style={{
+                display: "flex", gap: "0.75rem",
+                alignItems: "flex-start", padding: "0.25rem 0",
+              }}>
+                <input
+                  id="rg-compliance"
+                  type="checkbox"
+                  className="rg-check"
+                  checked={form.compliance}
+                  onChange={set("compliance")}
+                  required
+                />
+                <label htmlFor="rg-compliance" style={{
+                  fontSize: "0.8125rem", color: T.onSurfaceVariant,
+                  lineHeight: 1.6, cursor: "pointer",
+                }}>
+                  I certify that I am a licensed healthcare professional and agree to the{" "}
+                  <a href="#" style={{ color: T.primary, textDecoration: "none" }}
                     onMouseEnter={(e) => (e.currentTarget.style.textDecoration = "underline")}
                     onMouseLeave={(e) => (e.currentTarget.style.textDecoration = "none")}
-                  >
-                  </a>
-                </div>
-                <div style={{ position: "relative" }}>
-                  <Icon name="lock" color={T.onSurfaceVariant} size="1.2rem" style={{
-                    position: "absolute", left: "0.875rem", top: "50%",
-                    transform: "translateY(-50%)", pointerEvents: "none",
-                  }} />
-                  <input
-                    id="ns-password" type="password" className="ns-input"
-                    placeholder="••••••••" required
-                    value={password} onChange={(e) => setPassword(e.target.value)}
-                  />
-                </div>
-              </div>
-
-              {/* Remember me */}
-              <div style={{ display: "flex", alignItems: "center", gap: "0.625rem", padding: "0.25rem 0" }}>
-                <input
-                  id="ns-remember" type="checkbox" className="ns-check"
-                  checked={remember} onChange={(e) => setRemember(e.target.checked)}
-                />
-                <label htmlFor="ns-remember" style={{
-                  fontSize: "0.875rem", color: T.onSurfaceVariant, cursor: "pointer",
-                }}>
-                  Maintain session on this terminal
+                  >HIPAA Compliance Standards</a>{" "}and{" "}
+                  <a href="#" style={{ color: T.primary, textDecoration: "none" }}
+                    onMouseEnter={(e) => (e.currentTarget.style.textDecoration = "underline")}
+                    onMouseLeave={(e) => (e.currentTarget.style.textDecoration = "none")}
+                  >Data Sovereignty Protocols</a>.
                 </label>
               </div>
 
               {/* CTA */}
-              <button type="submit" className="ns-btn" style={{ marginTop: "0.25rem" }}>
-                <Icon name="login" fill={1} color={T.onPrimary} size="1.2rem" />
-                AUTHENTICATE SESSION
+              <button type="submit" className="rg-btn" style={{ marginTop: "0.25rem" }}>
+                <Icon name="person_add" fill={1} color={T.onPrimaryFixed} size="1.2rem" />
+                Register Account
               </button>
             </form>
 
@@ -404,13 +458,13 @@ export default function NeuroScanLogin() {
               borderTop: "1px solid rgba(69,70,77,0.12)",
               textAlign: "center",
             }}>
-              <p style={{ fontSize: "0.9375rem", color: T.onSurfaceVariant }}>
-                New to the network?{" "}
+              <p style={{ fontSize: "0.875rem", color: T.onSurfaceVariant }}>
+                Already have a clinical account?{" "}
                 <a href="#" style={{ color: T.primary, fontWeight: 700, textDecoration: "none" }}
                   onMouseEnter={(e) => (e.currentTarget.style.textDecoration = "underline")}
                   onMouseLeave={(e) => (e.currentTarget.style.textDecoration = "none")}
                 >
-                  Request Physician Access
+                  Login here
                 </a>
               </p>
             </div>
@@ -418,35 +472,41 @@ export default function NeuroScanLogin() {
         </div>
       </main>
 
-
-      {/* ══════════════════════ BOTTOM NAV (mobile) ══════════════════════ */}
-      <nav className="ns-bottom-nav" style={{
-        position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 50,
-        height: "5rem",
-        alignItems: "center", justifyContent: "space-around",
-        padding: "0 2rem",
-        background: T.surfaceContainer,
-        borderTop: "1px solid rgba(218,226,253,0.08)",
-        boxShadow: "0 -8px 40px rgba(0,0,0,0.45)",
-      }}>
-        {/* Active: Login */}
-        <button className="ns-nav-btn" style={{ background: T.surfaceContainerHighest, color: T.primary }}>
-          <Icon name="login" fill={1} color={T.primary} size="1.375rem" />
-          <span>Login</span>
-        </button>
-        {/* Inactive: Register */}
+      {/* ══════════════════════ BOTTOM NAV — mobile, identical to login ══════════════════════ */}
+      <nav
+        className="rg-bottom-nav"
+        style={{
+          position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 50,
+          height: "5rem",
+          alignItems: "center", justifyContent: "space-around",
+          padding: "0 2rem",
+          background: T.surfaceContainer,
+          borderTop: "1px solid rgba(218,226,253,0.08)",
+          boxShadow: "0 -8px 40px rgba(0,0,0,0.45)",
+        }}
+      >
+        {/* Inactive: Login */}
         <button
-          className="ns-nav-btn"
+          className="rg-nav-btn"
           style={{ background: "transparent", color: "rgba(218,226,253,0.45)" }}
           onMouseEnter={(e) => (e.currentTarget.style.color = T.primary)}
           onMouseLeave={(e) => (e.currentTarget.style.color = "rgba(218,226,253,0.45)")}
         >
-          <Icon name="person_add" size="1.375rem" style={{ color: "inherit" }} />
+          <Icon name="login" size="1.375rem" style={{ color: "inherit" }} />
+          <span>Login</span>
+        </button>
+
+        {/* Active: Register */}
+        <button
+          className="rg-nav-btn"
+          style={{ background: T.surfaceContainerHighest, color: T.primary }}
+        >
+          <Icon name="person_add" fill={1} color={T.primary} size="1.375rem" />
           <span>Register</span>
         </button>
       </nav>
 
-      {/* ══════════════════════ DECORATIVE TRIANGLE ══════════════════════ */}
+      {/* ══════════════════════ DECORATIVE TRIANGLE — identical to login ══════════════════════ */}
       <div style={{
         position: "fixed", top: 0, right: 0,
         width: "33%", height: "100%",
