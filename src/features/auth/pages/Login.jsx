@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { loginUser } from "../services/auth.api";
+import "./Login.css";
 
 // ─── Design tokens ────────────────────────────────────────────────────────────
 const T = {
@@ -18,139 +20,6 @@ const T = {
   error:                   "#ffb4ab",
   tertiary:                "#ffb95f",
 };
-
-// ─── Global CSS ───────────────────────────────────────────────────────────────
-const css = `
-  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@700;800&display=swap');
-  @import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap');
-
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-  html, body, #root {
-    background: ${T.surface};
-    color: ${T.onSurface};
-    font-family: 'Inter', sans-serif;
-    min-height: 100dvh;
-  }
-
-  /* Glass card */
-  .ns-card {
-    background: rgba(45, 52, 73, 0.60);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-  }
-
-  /* CTA button */
-  .ns-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-    width: 100%;
-    padding: 1rem;
-    border: none;
-    border-radius: 0.5rem;
-    cursor: pointer;
-    font-family: 'Manrope', sans-serif;
-    font-weight: 700;
-    font-size: 0.875rem;
-    letter-spacing: 0.08em;
-    color: ${T.onPrimary};
-    background: linear-gradient(135deg, ${T.primary} 0%, ${T.onPrimaryContainer} 100%);
-    box-shadow: 0 4px 32px rgba(123,208,255,0.18);
-    transition: opacity 0.15s, transform 0.1s;
-  }
-  .ns-btn:hover  { opacity: 0.88; }
-  .ns-btn:active { transform: scale(0.98); }
-
-  /* Input */
-  .ns-input {
-    display: block;
-    width: 100%;
-    padding: 0.875rem 0.875rem 0.875rem 2.75rem;
-    background: ${T.surfaceContainerHighest};
-    border: none;
-    border-radius: 0.25rem;
-    color: ${T.onSurface};
-    font-size: 0.9375rem;
-    font-family: 'Inter', sans-serif;
-    outline: none;
-    transition: background 0.2s, box-shadow 0.2s;
-  }
-  .ns-input::placeholder { color: rgba(198,198,205,0.5); }
-  .ns-input:focus {
-    background: ${T.surfaceBright};
-    box-shadow: 0 0 0 1px rgba(123,208,255,0.40);
-  }
-
-  /* Label */
-  .ns-label {
-    display: block;
-    font-size: 0.6875rem;
-    font-weight: 700;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: ${T.onSurfaceVariant};
-    margin-bottom: 0.5rem;
-  }
-
-  /* Nav button */
-  .ns-nav-btn {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 0.15rem;
-    padding: 0.5rem 1.75rem;
-    border: none;
-    border-radius: 0.375rem;
-    cursor: pointer;
-    font-family: 'Inter', sans-serif;
-    font-size: 0.6875rem;
-    font-weight: 500;
-    transition: transform 0.15s, color 0.15s;
-  }
-  .ns-nav-btn:active { transform: scale(0.90); }
-
-  /* Checkbox */
-  .ns-check {
-    width: 1.125rem;
-    height: 1.125rem;
-    border-radius: 0.125rem;
-    background: ${T.surfaceContainerHighest};
-    border: none;
-    accent-color: ${T.primary};
-    cursor: pointer;
-    flex-shrink: 0;
-  }
-
-  /* ── Mobile defaults ── */
-  .ns-left-panel    { display: none; }
-  .ns-mobile-shield { display: flex; }
-  .ns-hipaa         { display: none; }
-  .ns-bottom-nav    { display: flex; }
-
-  /* ── Desktop (md+) ── */
-  @media (min-width: 768px) {
-    .ns-left-panel    { display: flex; }
-    .ns-mobile-shield { display: none !important; }
-    .ns-bottom-nav    { display: none !important; }
-    .ns-main {
-      flex-direction: row !important;
-      padding: 6rem 1.5rem 4rem !important;
-      gap: 3rem !important;
-    }
-    .ns-card-wrap {
-      width: 440px !important;
-      padding: 0 !important;
-    }
-  }
-
-  /* ── XL badge ── */
-  @media (min-width: 1280px) {
-    .ns-hipaa { display: flex; }
-  }
-`;
 
 // ─── Icon helper ──────────────────────────────────────────────────────────────
 function Icon({ name, fill = 0, size = "1.25rem", color, style = {} }) {
@@ -184,15 +53,29 @@ export default function NeuroScanLogin() {
   const [password, setPassword] = useState("");
   const [remember, setRemember] = useState(false);
 
-  const handleSubmit = (e) => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Authenticate:", { email, remember });
+    setError("");
+    setSuccess("");
+    setIsSubmitting(true);
+  
+    try {
+      const data = await loginUser({ email, password });
+      localStorage.setItem("accessToken", data.token);
+      setSuccess(data.message || "Login successful");
+    } catch (err) {
+      setError(err.message || "Login failed");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
     <>
-      <style>{css}</style>
-
       {/* ══════════════════════ HEADER ══════════════════════ */}
       <header style={{
         position: "fixed", top: 0, left: 0, right: 0, zIndex: 50,
@@ -336,6 +219,8 @@ export default function NeuroScanLogin() {
             {/* Form */}
             <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
 
+            {error ? <p style={{ color: T.error, fontSize: "0.875rem" }}>{error}</p> : null}
+            {success ? <p style={{ color: T.primary, fontSize: "0.875rem" }}>{success}</p> : null}
               {/* Email */}
               <div>
                 <label className="ns-label" htmlFor="ns-email">Email Address</label>
@@ -392,9 +277,9 @@ export default function NeuroScanLogin() {
               </div>
 
               {/* CTA */}
-              <button type="submit" className="ns-btn" style={{ marginTop: "0.25rem" }}>
+              <button type="submit" className="ns-btn" style={{ marginTop: "0.25rem" }} disabled={isSubmitting}>
                 <Icon name="login" fill={1} color={T.onPrimary} size="1.2rem" />
-                AUTHENTICATE SESSION
+                {isSubmitting ? "Authenticating..." : "AUTHENTICATE SESSION"}
               </button>
             </form>
 

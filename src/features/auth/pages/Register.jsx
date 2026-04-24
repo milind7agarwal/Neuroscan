@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { registerUser } from "../services/auth.api";
+import "./Register.css";
 
 // ─── Design tokens (shared with NeuroScanLogin) ───────────────────────────────
 const T = {
@@ -21,136 +23,6 @@ const T = {
   tertiaryContainer:       "#251400",
   error:                   "#ffb4ab",
 };
-
-// ─── Global CSS ───────────────────────────────────────────────────────────────
-const css = `
-  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@700;800&display=swap');
-  @import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap');
-
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-  html, body, #root {
-    background: ${T.surface};
-    color: ${T.onSurface};
-    font-family: 'Inter', sans-serif;
-    min-height: 100dvh;
-  }
-
-  /* Glass card — identical to login */
-  .rg-card {
-    background: rgba(45, 52, 73, 0.60);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-  }
-
-  /* CTA — identical gradient to login */
-  .rg-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-    width: 100%;
-    padding: 1rem;
-    border: none;
-    border-radius: 0.375rem;
-    cursor: pointer;
-    font-family: 'Manrope', sans-serif;
-    font-weight: 700;
-    font-size: 0.875rem;
-    letter-spacing: 0.08em;
-    color: ${T.onPrimaryFixed};
-    background: linear-gradient(135deg, ${T.primary} 0%, ${T.onPrimaryContainer} 100%);
-    box-shadow: 0 4px 32px rgba(123,208,255,0.18);
-    transition: filter 0.15s, transform 0.1s;
-  }
-  .rg-btn:hover  { filter: brightness(1.10); }
-  .rg-btn:active { transform: scale(0.98); }
-
-  /* Input — identical to login */
-  .rg-input {
-    display: block;
-    width: 100%;
-    padding: 0.875rem 0.875rem 0.875rem 2.75rem;
-    background: ${T.surfaceContainerHighest};
-    border: none;
-    border-radius: 0.25rem;
-    color: ${T.onSurface};
-    font-size: 0.9375rem;
-    font-family: 'Inter', sans-serif;
-    outline: none;
-    transition: background 0.2s, box-shadow 0.2s;
-  }
-  .rg-input::placeholder { color: rgba(198,198,205,0.40); }
-  .rg-input:focus {
-    background: ${T.surfaceBright};
-    box-shadow: 0 0 0 1px rgba(123,208,255,0.40);
-  }
-
-  /* Label — identical to login */
-  .rg-label {
-    display: block;
-    font-size: 0.6875rem;
-    font-weight: 700;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: ${T.onSurfaceVariant};
-    margin-bottom: 0.5rem;
-  }
-
-  /* Nav button (bottom bar) — identical to login */
-  .rg-nav-btn {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 0.15rem;
-    padding: 0.5rem 1.75rem;
-    border: none;
-    border-radius: 0.375rem;
-    cursor: pointer;
-    font-family: 'Inter', sans-serif;
-    font-size: 0.6875rem;
-    font-weight: 500;
-    transition: transform 0.15s, color 0.15s;
-  }
-  .rg-nav-btn:active { transform: scale(0.90); }
-
-  /* Checkbox */
-  .rg-check {
-    width: 1.125rem;
-    height: 1.125rem;
-    border-radius: 0.125rem;
-    background: ${T.surfaceContainerHighest};
-    border: 1px solid ${T.outlineVariant};
-    accent-color: ${T.primary};
-    cursor: pointer;
-    flex-shrink: 0;
-    margin-top: 0.125rem;
-  }
-
-  /* ── Mobile defaults (identical pattern to login) ── */
-  .rg-left-panel    { display: none; }
-  .rg-mobile-shield { display: flex;  }
-  .rg-hipaa         { display: none;  }
-  .rg-bottom-nav    { display: flex;  }
-
-  /* ── Desktop md+ ── */
-  @media (min-width: 768px) {
-    .rg-left-panel    { display: flex; }
-    .rg-mobile-shield { display: none !important; }
-    .rg-bottom-nav    { display: none !important; }
-    .rg-main {
-      flex-direction: row !important;
-      padding: 6rem 1.5rem 4rem !important;
-      gap: 3rem !important;
-      align-items: center !important;
-    }
-    .rg-card-wrap {
-      width: 480px !important;   /* slightly wider than login — more fields */
-      padding: 0 !important;
-    }
-  }
-`;
 
 // ─── Icon helper ──────────────────────────────────────────────────────────────
 function Icon({ name, fill = 0, size = "1.25rem", color, style = {} }) {
@@ -214,6 +86,9 @@ export default function NeuroScanRegister() {
   const [form, setForm] = useState({
     name: "", email: "", password: "", compliance: false,
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
 
   const set = (key) => (e) =>
     setForm((prev) => ({
@@ -221,15 +96,31 @@ export default function NeuroScanRegister() {
       [key]: e.target.type === "checkbox" ? e.target.checked : e.target.value,
     }));
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    console.log("Register:", form);
-  };
+    const handleSubmit = async (e) => {
+      e.preventDefault();
+      setError("");
+      setSuccess("");
+      setIsSubmitting(true);
+    
+      try {
+        const payload = {
+          username: form.name,
+          email: form.email,
+          password: form.password,
+        };
+    
+        const data = await registerUser(payload);
+        setSuccess(data.message || "Registration successful");
+        setForm({ name: "", email: "", password: "", compliance: false });
+      } catch (err) {
+        setError(err.message || "Registration failed");
+      } finally {
+        setIsSubmitting(false);
+      }
+    };
 
   return (
     <>
-      <style>{css}</style>
-
       {/* ══════════════════════ HEADER — identical to login ══════════════════════ */}
       <header style={{
         position: "fixed", top: 0, left: 0, right: 0, zIndex: 50,
@@ -381,7 +272,8 @@ export default function NeuroScanRegister() {
 
             {/* ── Form ── */}
             <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
-
+            {error ? <p style={{ color: T.error, fontSize: "0.875rem" }}>{error}</p> : null}
+            {success ? <p style={{ color: T.primary, fontSize: "0.875rem" }}>{success}</p> : null}
               {/* Full Name */}
               <div>
                 <label className="rg-label" htmlFor="rg-name">Full Name</label>
@@ -446,9 +338,9 @@ export default function NeuroScanRegister() {
               </div>
 
               {/* CTA */}
-              <button type="submit" className="rg-btn" style={{ marginTop: "0.25rem" }}>
+              <button type="submit" className="rg-btn" style={{ marginTop: "0.25rem" }} disabled={isSubmitting}>
                 <Icon name="person_add" fill={1} color={T.onPrimaryFixed} size="1.2rem" />
-                Register Account
+                {isSubmitting ? "Registering..." : "Register Account"}
               </button>
             </form>
 
